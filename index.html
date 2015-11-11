@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="css/styles.css"/>
+    <meta name="author" content="4Q Studios">
+
+    <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
+    <link rel="shortcut icon" href="http://locname.com/assets/favicon.png">
+    <link rel="icon" href="http://locname.com/assets/favicon.png">
+    <script src="js/gmaps.js"></script>
+    <link rel="stylesheet" href="popupwindow.css">
+    <script src="popupwindow.js"></script>
+
+    <script>
+        var map;
+        var autocompleteService;
+        var markerMouseOverListener = null, markerMouseOutListener = null;
+        var currentMarker;
+        var shouldShowOverlay = true;
+
+        function removeOverlay() {
+            $('#overlay').remove();
+            // placeMarker(currentMarker);
+            // $('#searchBox').val(currentMarker.title);
+        }
+
+        function searchLocname(searchTerm, callback, results) {
+
+            if (searchTerm.length) {
+                $.ajax({
+                    url: "http://api-v2.locname.com/api/v2/autocomplete",
+                    dataType: "jsonp",
+                    data: {
+                        term: searchTerm
+                    },
+                    success: function (data) {
+                        var results2 = results;
+                        $.each(data, function (key, locnamePlace) {
+                            if (key != "status" && key != "error") {
+                                var place = {
+                                    title: locnamePlace.value,
+                                    id: locnamePlace.id,
+                                    lat: locnamePlace.late,
+                                    lng: locnamePlace.long,
+                                    type: "locname",
+                                    extraData: locnamePlace
+                                };
+                                results2.push(place);
+                            }
+                        });
+
+                        callback(results2);
+                    }
+                });
+            }
+        }
+
+        function searchGooglePlaces(searchTerm, callback) {
+
+            if (searchTerm.length) {
+                autocompleteService.getQueryPredictions({input: searchTerm}, function (predictions, status) {
+                    if (status != google.maps.places.PlacesServiceStatus.OK) {
+                        return;
+                    }
+                    var results = [];
+                    $.each(predictions, function (key, gmapsPlace) {
+                        if (gmapsPlace.id != null) {
+                            var place = {
+                                title: gmapsPlace.description,
+                                id: gmapsPlace.id,
+                                reference: gmapsPlace.reference,
+                                placeId: gmapsPlace.place_id,
+                                type: "gmaps",
+                                extraData: gmapsPlace
+                            };
+                            results.push(place);
+                        }
+                    });
+                    searchLocname(searchTerm, callback, results);
+                });
+            }
+        }
+
+        function gmapsLocationDetails(reference, callback) {
+            var placesService = new google.maps.places.PlacesService(map.map);
+            placesService.getDetails({reference: reference}, function (detail, status) {
+                callback(detail);
+            });
+        }
+
+        function getParameterByName(name) {
+            name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+            var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+                    results = regex.exec(location.search);
+            return results === null ? null : decodeURIComponent(results[1].replace(/\+/g, " "));
+        }
+
+        function placeMarker(place) {
+            currentMarker = place;
+
+            marker = {
+                lat: place.lat,
+                lng: place.lng,
+                //                icon: icono,
+                title: place.title,
+                infoWindow: {
+                    content: '<div style="text-align:left"><strong>' + place.title + '</strong></div>',
+                    mouseout: function (e) {
+                        this.infoWindow.close();
+                        this.infoWindow.content = '<div style="text-align:left"><strong>' + this.title + '</strong></div>';
+                    },
+
+                },
+                //                label: titulo + "++" + place.direccion + "++" + place.ciudad,
+                //                value: titulo,
+                //                category: place.ciudad,
+                latitud: place.lat,
+                longitud: place.lng,
+                animation: google.maps.Animation.DROP,
+                draggable: true,
+                mouseover: function (e) {
+                    // this.infoWindow.content = "Warning: Moving the pin will reset the address field.";
+                    // this.infoWindow.open(this.map, this);
+                    showOverlay();
+                },
+                mouseout: function (e) {
+                    // this.infoWindow.close();
+                    //  this.infoWindow.content = '<div style="text-align:left"><strong>' + this.title + '</strong></div>';
+                }
+            };
+
+
+            map.setCenter(place.lat, place.lng, function () {
+                map.removeMarkers();
+                var mapMarker = map.addMarker(marker);
+
+                //add event listeners
+                google.maps.event.addListener(mapMarker, 'dragstart', function () {
+
+                    ;
+                });
+
+                google.maps.event.addListener(mapMarker, 'drag', function () {
+                    $('#searchBox').val('Drop the pin to search a new address..');
+                });
+
+                google.maps.event.addListener(mapMarker, 'dragend', function () {
+
+                    geocodePosition(mapMarker.getPosition());
+                    var latitude = this.position.lat();
+                    var longitude = this.position.lng();
+                    document.getElementById("latitude").value = latitude;
+                    document.getElementById("longitude").value = longitude;
+                    //overlay
+                    showOverlay();
+                });
+
+
+            });
+
+            extractDataToForm(place);
+
+        }
+
+        function showOverlay() {
+            if(!shouldShowOverlay){
+                return;
+            }
+            shouldShowOverlay = false;
+            $("<div id= 'overlay'/>").css({
+                position: "absolute",
+                width: "100%",
+                height: "100%",
+                left: 0,
+                top: 0,
+                zIndex: 100000  // to be on the safe side
+            }).appendTo($("#map").css("position", "relative"));
+
+            $("<div id= 'message' onclick='removeOverlay();'><b>Note: Moving the map pin will resete the address field.&nbsp If you believe the map location is wrong, <a id='popupaddr' href='#' onclick='showPopup(event); return false;'>click here</a> to enable edit </b></div>").appendTo($("#overlay").css("position", "relative"));
+        }
+
+
+        function placesDetailsCallback(place, status) {
+            if (status == google.maps.places.PlacesServiceStatus.OK) {
+            }
+        }
+
+
+        function geolocate() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    var geolocation = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    var circle = new google.maps.Circle({
+                        center: geolocation,
+                        radius: position.coords.accuracy
+                    });
+                    autocomplete.setBounds(circle.getBounds());
+                });
+            }
+        }
+
+
+        $(function () {
+            var s = document.createElement("script");
+            s.type = "text/javascript";
+            s.src = "https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true&libraries=places&callback=initService";
+            window.initService = function () {
+                //                var map = new google.maps.Map(document.getElementById('map'), {
+                //                    center: {lat: -33.866, lng: 151.196},
+                //                    zoom: 15
+                //                });
+                map = new GMaps({
+                    div: '#map',
+                    lat: -12.043333,
+                    lng: -77.028333
+                });
+                autocompleteService = new google.maps.places.AutocompleteService();
+
+                var searchBox = $('#searchBox');
+                $('#searchBox').on('focus', function () {
+                    $('#searchBox').css('background-image', 'none');
+                });
+                $('#searchBox').on('blur', function () {
+                    if ($('#searchBox').val().length == 0) {
+                        $('#searchBox').css('background-image', "url('./glass-icon.png')");
+                    }
+                });
+                var termTemplate = "<span class='ui-autocomplete-term'>%s</span>";
+                var searchBox = $("#searchBox").autocomplete({
+                    //source: 'getplaces',
+                    source: function (request, response) {
+                        var searchTerm = request.term;
+                        searchGooglePlaces(searchTerm, function (results) {
+                            response(results);
+                        });
+                    },
+                    select: function (event, ui) {
+                        var place = ui.item;
+                        shouldShowOverlay = true;
+                        if (place.type == "locname") {
+                            placeMarker(place);
+
+                        } else {
+                            var placeDetail = gmapsLocationDetails(place.reference, function (details) {
+                                place.lat = details.geometry.location.lat();
+                                place.lng = details.geometry.location.lng();
+                                place.extraData = details;
+                                placeMarker(place);
+                            });
+                        }
+                        ui.item.value = place.title;
+
+                    },
+                    minLenght: 1,
+                    autoFocus: true
+                    //                    open: function(e, ui)
+                    //                    {
+                    //
+                    //                        var acData = $(this).data('uiAutocomplete');
+                    //                        acData.menu
+                    //                                .element
+                    //                                .find('a')
+                    //                                .each(function() {
+                    //                                    var me = $(this);
+                    //                                    var regex = new RegExp(acData.term, "gi");
+                    //                                    me.html( me.text().replace(regex, function (matched) {
+                    //                                                return termTemplate.replace('%s', matched) ;
+                    //
+                    //                                            }
+                    //                                    ) );
+                    //                                });
+                    //
+                    //                        // css ==============================
+                    //                        acData.menu
+                    //                                .element
+                    //                                .find('a')
+                    //                                .each(function() {
+                    //                                    var me = $(this);
+                    //                                    me.addClass("ui-menu-item-icon").css( "background-image", "url(http://jquery.com//favicon.ico)" );
+                    //                                });
+                    //                        // Powered by ==============================
+                    //
+                    //
+                    //
+                    //                    }
+                });
+                //                searchBox.data("ui-autocomplete")._renderMenu = function (ul, items) {
+                //                    var that = this;
+                //                    $.each(items, function (index, item) {
+                //
+                ////                        ul.append("<li>" + item.title + "</li>");
+                //
+                ////                        that._renderItemData(ul, item);
+                //                    });
+                //                };
+                searchBox.data("ui-autocomplete")._renderItem = function (ul, item) {
+                    var imgName = "";
+                    if (item.type == "locname") {
+                        imgName = "locname-icon.png";
+                    } else {
+                        imgName = "gmaps-icon.png";
+                    }
+                    ;
+                    return $("<li>").append("<a><strong>" + item.title + "</strong> <img style='float:right;max-height:100%; max-width:100%;' src=" + imgName + " width = 20px height = 20px></img> </a>").appendTo(ul);
+                };
+
+
+                searchBox.data("ui-autocomplete")._renderMenu = function (ul, items) {
+                    var self = this;
+                    $.each(items, function (index, item) {
+                        // self._renderItem(ul, item);
+                        self._renderItemData(ul, item)
+                    });
+                    // Adder
+                    ul.append("<div style='float:right;'  id=\"locname_logo\">Powered by <b style='font-family: erasDemiFont, serif;'> LocName </b><img style=max-height:100%; max-width:100%;' src=locname-icon.png width = 25px height = 25px></img> <b> & </b> <img style=max-height:100%; max-width:100%;' src=google.png width = 80px height = 25px></img></div> ");
+                };
+            };
+            $("head").append(s);
+
+            if (getParameterByName("debug") == "true" || getParameterByName("debug") == "1") {
+                $('#debugForm').css('display', 'block');
+            }
+        });
+
+
+        var componentForm = {
+            street_number: 'short_name',
+            route: 'long_name',
+            locality: 'long_name',
+            administrative_area_level_1: 'short_name',
+            country: 'long_name',
+            postal_code: 'short_name'
+        };
+
+
+        function callback(place, status) {
+            if (status == google.maps.places.PlacesServiceStatus.OK) {
+
+            }
+        }
+
+    </script>
+</head>
+<body>
+
+<!-- popup -->
+
+<div id="modal-content" class="pop-up-display-content">
+    <form onsubmit="return false">
+
+        <div class="col-2">
+            <label>
+                LocName
+                <input placeholder="LocName" id="locName" name="locName" tabindex="1">
+            </label>
+        </div>
+        <div class="col-2">
+            <label>
+                Street Name
+                <input placeholder="Street Name" id="route" name="route"
+                       disabled="true" tabindex="2">
+            </label>
+        </div>
+
+        <div class="col-3">
+            <label>
+                Building Number
+                <input placeholder="Building Number" id="street_number"
+                       disabled="true" tabindex="3" name="street_number"></input>
+            </label>
+        </div>
+        <div class="col-3">
+            <label>
+                City
+                <input placeholder="City" id="locality" name="city"
+                       disabled="true" tabindex="4">
+            </label>
+        </div>
+        <div class="col-3">
+            <label>
+                State
+                <input placeholder="State"
+                       id="administrative_area_level_1" name="state" disabled="true" tabindex="6">
+            </label>
+        </div>
+        <div class="col-4">
+            <label>
+                Postal Code
+                <input placeholder="Postal Code" id="postal_code" name="postal_code"
+                       disabled="true" tabindex="7">
+            </label>
+        </div>
+        <div class="col-4">
+            <label>Country
+                <input id="country" disabled="true" tabindex="7" name="country">
+            </label>
+        </div>
+        <div class="col-4">
+            <label>Latitude
+                <input placeholder="Latitude" id="latitude" name="latitude" tabindex="7">
+            </label>
+        </div>
+        <div class="col-4">
+            <label>Longitude
+                <input placeholder="Longitude" id="longitude" name="longitude" tabindex="7">
+            </label>
+        </div>
+
+        <div class="col-submit">
+            <button class="submitbtn">Save</button>
+        </div>
+    </form>
+
+</div>
+
+
+<div class="searchRow">
+
+    <div class="location">
+        <span class="holder">Search your address or <span class="customFontPH">LocName</span>  </span>
+        <input id='searchBox' type="search"/>
+        <button class="gpsBtn" onclick="findMe()"></button>
+    </div>
+
+</div>
+<div id="map"></div>
+<div id="debugForm" style="display: none;">
+    <img class="header-logo-small" src="http://locname.com/assets/loc/images/logo-small.png" style="cursor:pointer;"
+         onclick="window.location = 'http://locname.com/'"></img>
+
+    <form onsubmit="return false">
+
+        <div class="col-2">
+            <label>
+                LocName
+                <input placeholder="LocName" id="locName" name="locName" tabindex="1">
+            </label>
+        </div>
+        <div class="col-2">
+            <label>
+                Street Name
+                <input placeholder="Street Name" id="route" name="route"
+                       disabled="true" tabindex="2">
+            </label>
+        </div>
+
+        <div class="col-3">
+            <label>
+                Building Number
+                <input placeholder="Building Number" id="street_number"
+                       disabled="true" tabindex="3" name="street_number"></input>
+            </label>
+        </div>
+        <div class="col-3">
+            <label>
+                City
+                <input placeholder="City" id="locality" name="city"
+                       disabled="true" tabindex="4">
+            </label>
+        </div>
+        <div class="col-3">
+            <label>
+                State
+                <input placeholder="State"
+                       id="administrative_area_level_1" name="state" disabled="true" tabindex="6">
+            </label>
+        </div>
+        <div class="col-4">
+            <label>
+                Postal Code
+                <input placeholder="Postal Code" id="postal_code" name="postal_code"
+                       disabled="true" tabindex="7">
+            </label>
+        </div>
+        <div class="col-4">
+            <label>Country
+                <input id="country" disabled="true" tabindex="7" name="country">
+            </label>
+        </div>
+        <div class="col-4">
+            <label>Latitude
+                <input placeholder="Latitude" id="latitude" name="latitude" tabindex="7">
+            </label>
+        </div>
+        <div class="col-4">
+            <label>Longitude
+                <input placeholder="Longitude" id="longitude" name="longitude" tabindex="7">
+            </label>
+        </div>
+
+        <div class="col-submit">
+            <button class="submitbtn">Save</button>
+        </div>
+    </form>
+</div>
+<script type="text/javascript">
+
+    function extractDataToForm(place) {
+        //implementar
+        if (place.type == "locname") {
+            console.error(place)
+            document.getElementsByName("locName")[0].value = place.title;
+            document.getElementsByName("route")[0].value = place.extraData.street_name;
+            document.getElementsByName("street_number")[0].value = place.extraData.street_number;
+            document.getElementsByName("city")[0].value = place.extraData.city;
+            document.getElementsByName("state")[0].value = place.extraData.state;
+            document.getElementsByName("postal_code")[0].value = place.extraData.postal_code;
+            document.getElementsByName("country")[0].value = place.extraData.country;
+            document.getElementsByName("latitude")[0].value = place.lat;
+            document.getElementsByName("longitude")[0].value = place.lng;
+        } else {
+            fillInAddress(place);
+        }
+        ;
+
+
+    }
+
+
+    //reverse geocoding for dragged marker
+
+    function geocodePosition(pos) {
+        var geocoder = new google.maps.Geocoder();
+        geocoder.geocode({
+            latLng: pos
+        }, function (responses) {
+            if (responses && responses.length > 0) {
+                var place = {
+                    title: responses[0].formatted_address,
+                    id: responses[0].place_id,
+                    placeId: responses[0].place_id,
+                    type: "gmaps",
+                    extraData: responses[0]
+                };
+                document.getElementById("searchBox").value = responses[0].formatted_address
+                fillInAddress(place);
+
+            } else {
+                console.error('Cannot determine address at this location.');
+            }
+        });
+    }
+
+    function updateMarkerAddress(address) {
+        placeMarker(address)
+    }
+
+    // a reverse geocode.
+    function geocodePlaceId(placeId) {
+        var geocoder = new google.maps.Geocoder();
+
+        geocoder.geocode({'placeId': placeId}, function (results, status) {
+            if (status === google.maps.GeocoderStatus.OK) {
+                if (results[0]) {
+                } else {
+                    window.alert('No results found');
+                }
+            } else {
+                window.alert('Geocoder failed due to: ' + status);
+            }
+        });
+    }
+
+
+    // [START region_fillform]
+    function fillInAddress(place) {
+        // Get the place details from the autocomplete object.
+
+        for (var component in componentForm) {
+            document.getElementById(component).value = '';
+            document.getElementById(component).disabled = false;
+        }
+        if (typeof place.lat !== "undefined") {
+            document.getElementById("latitude").value = place.lat;
+            document.getElementById("longitude").value = place.lng;
+        }
+        // Get each component of the address from the place details
+        // and fill the corresponding field on the form.
+        for (var i = 0; i < place.extraData.address_components.length; i++) {
+            var addressType = place.extraData.address_components[i].types[0];
+            if (componentForm[addressType]) {
+                var val = place.extraData.address_components[i][componentForm[addressType]];
+                document.getElementById(addressType).value = val;
+            }
+        }
+    }
+    // [END region_fillform]
+
+    // [START region_geolocation]
+    // Bias the autocomplete object to the user's geographical location,
+    // as supplied by the browser's 'navigator.geolocation' object.
+    function geolocate() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function (position) {
+                var geolocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                var circle = new google.maps.Circle({
+                    center: geolocation,
+                    radius: position.coords.accuracy
+                });
+                autocomplete.setBounds(circle.getBounds());
+            });
+        }
+    }
+    // [END region_geolocation]
+
+
+    function success(position) {
+        var coords = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+
+        var options = {
+            zoom: 15,
+            center: coords,
+            mapTypeControl: false,
+            navigationControlOptions: {
+                style: google.maps.NavigationControlStyle.SMALL
+            },
+            mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+
+
+        var marker = new google.maps.Marker({
+            position: coords,
+            map: map.map,
+            title: "You are here!"
+        });
+
+        marker = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            //                icon: icono,
+            title: "You are here!",
+            infoWindow: {
+                content: '<div style="text-align:left"><strong>' + 'You are here!' + '</strong></div>'
+            },
+            //                label: titulo + "++" + place.direccion + "++" + place.ciudad,
+            //                value: titulo,
+            //                category: place.ciudad,
+            latitud: position.coords.latitude,
+            longitud: position.coords.longitude,
+            animation: google.maps.Animation.DROP,
+            draggable: true
+        };
+
+
+        map.setCenter(coords.lat(), coords.lng(), function () {
+            map.removeMarkers();
+            var mapMarker = map.addMarker(marker);
+        });
+
+
+    }
+
+    function GetLocation(location) {
+    }
+
+    function findMe() {
+
+        navigator.geolocation.getCurrentPosition(GetLocation);
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(success);
+        } else {
+            error('Geo Location is not supported');
+        }
+    }
+
+    function LongPress(map, length) {
+        this.length_ = length;
+        var me = this;
+        me.map_ = map;
+        me.timeoutId_ = null;
+        google.maps.event.addListener(map.map, 'mousedown', function (e) {
+            me.onMouseDown_(e);
+        });
+        google.maps.event.addListener(map.map, 'mouseup', function (e) {
+            me.onMouseUp_(e);
+        });
+        google.maps.event.addListener(map.map, 'drag', function (e) {
+            me.onMapDrag_(e);
+        });
+    }
+    ;
+    LongPress.prototype.onMouseUp_ = function (e) {
+        clearTimeout(this.timeoutId_);
+    };
+    LongPress.prototype.onMouseDown_ = function (e) {
+        clearTimeout(this.timeoutId_);
+        var map = this.map_;
+        var event = e;
+        this.timeoutId_ = setTimeout(function () {
+            google.maps.event.trigger(map.map, 'longpress', event);
+        }, this.length_);
+    };
+    LongPress.prototype.onMapDrag_ = function (e) {
+        clearTimeout(this.timeoutId_);
+    };
+
+
+    $(function () {
+        $("span.holder + input").keydown(function () {
+            $("#overlay").remove();
+
+            if ($(this).val().length >= 0) {
+                $(this).prev('span.holder').hide();
+            } else {
+                $(this).prev('span.holder').show();
+            }
+        });
+
+        $("span.holder + input").keyup(function () {
+            map.removeMarkers();
+
+            if ($(this).val().length) {
+                $(this).prev('span.holder').hide();
+            } else {
+                $(this).prev('span.holder').show();
+            }
+        });
+
+        $("span.holder").click(function () {
+            $(this).next().focus();
+        });
+
+
+        $("#overlay").mouseout(function () {
+            $(this).remove();
+
+        });
+
+
+    });
+
+
+    //popup animation
+
+
+    function setEqualHeight(e) {
+        var t = 0;
+        e.each(function () {
+            currentHeight = $(this).height();
+            if (currentHeight > t) {
+                t = currentHeight
+            }
+        });
+        e.height(t)
+    }
+
+
+    $(document).ready(function () {
+        setEqualHeight($(".holder"));
+
+
+    })
+
+    function showPopup(e) {
+        if (e != null) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        $('#modal-content').popUpWindow({
+            action: "open", // open or close
+            modal: true, // modal mode
+            size: "large", // large, medium or large
+            buttons: [{
+                text: "Yes",
+                click: function () {
+                    this.close();
+                }
+
+            }, {
+
+                text: "No",
+                click: function () {
+                    this.close();
+                }
+            }]
+        });
+
+        return false;
+    }
+
+
+</script>
+
+</body>
+</html>

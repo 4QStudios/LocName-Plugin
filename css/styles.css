@@ -1,0 +1,424 @@
+@import url(http://fonts.googleapis.com/css?family=Laila:400,700);
+
+@font-face {
+    font-family: erasDemiFont;
+    src: url(eras-demi-itc/ERASDEMI.ttf);
+}
+
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+    outline: none;
+    -webkit-font-smoothing: antialiased;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+
+::-webkit-input-placeholder {
+ font-size: 100%;
+ font-family: erasDemiFont, serif;
+ color: #BDBDBD;
+}
+:-moz-placeholder { /* older Firefox*/
+ font-size: 100%;
+ font-family: erasDemiFont, serif;
+ color: #BDBDBD;
+}
+::-moz-placeholder { /* Firefox 19+ */
+ font-size: 100%;
+ font-family: erasDemiFont, serif;
+ color: #BDBDBD;
+}
+:-ms-input-placeholder {
+ font-size: 100%;
+ font-family: erasDemiFont, serif;
+ color: #BDBDBD;
+}
+
+
+html { overflow-y: scroll; height: 100% }
+body {
+    font-family: Arial, Tahoma, sans-serif;
+    background: #fff;
+    font-size: 62.5%;
+    line-height: 1;
+    /*padding-top: 40px;*/
+    height: 100%;
+}
+
+br { display: block; line-height: 1.6em; }
+
+input, textarea {
+    -webkit-font-smoothing: antialiased;
+    outline: none;
+}
+
+strong, b { font-weight: bold; }
+em, i { font-style: italic; }
+
+h1 {
+    display: block;
+    font-size: 3.1em;
+    line-height: 1.45em;
+    font-family: 'Laila', serif;
+    text-align: center;
+    font-weight: bold;
+    color: #555;
+    text-shadow: 1px 1px 0 #fff;
+}
+
+
+.header-logo-small {
+    margin: 30px;
+}
+
+/** form field **/
+form {
+    display: block;
+    margin: 30px;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid #e4e4e4;
+    border-radius: 5px;
+    font-size: 0;
+}
+
+form > div > label {
+    display: block;
+    padding: 20px 20px 10px;
+    vertical-align: top;
+    font-size: 13px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #939393;
+    cursor: pointer;
+}
+form > div.switch > label {
+    padding: 16px 20px 13px;
+}
+
+.col-2, .col-3, .col-4 {
+    border-bottom: 1px solid #e4e4e4;
+}
+
+form > div > .col-4 {
+    height: 86px;
+}
+
+label > input {
+    display: inline-block;
+    position: relative;
+    width: 100%;
+    height: 27px;
+    line-height: 27px;
+    margin: 5px -5px 0;
+    padding: 7px 5px 3px;
+    border: none;
+    outline: none;
+    color: #555;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-weight: bold;
+    font-size: 14px;
+    opacity: .6;
+    transition: all linear .3s;
+}
+
+.col-submit {
+    text-align: center;
+    padding: 20px;
+}
+
+label > select {
+    display: block;
+    width: 100%;
+    padding: 0;
+    color: #555;
+    margin: 16px 0 6px;
+    font-weight: 500;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 14px;
+    opacity: .4;
+    transition: all linear .3s;
+}
+
+label > input:focus, label > select:focus {
+    opacity: 1;
+}
+
+
+
+/** button design based on http://codepen.io/guvootes/pen/eyDAb **/
+button {
+    width: 100%;
+    height: 35px;
+    border: none;
+    border-radius: 4px;
+    margin: 0 0 15px 0;
+    font-size: 10px;
+    color: #fff;
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+    overflow: hidden;
+    outline: none;
+}
+
+.findbtn{
+    width: auto;
+    margin-left: 20px;
+}
+
+button.submitbtn {
+    background-image: -moz-linear-gradient(#97c16b, #8ab959);
+    background-image: -webkit-linear-gradient(#97c16b, #8ab959);
+    background-image: linear-gradient(#97c16b, #8ab959);
+    border-bottom: 1px solid #648c3a;
+    cursor: pointer;
+    color: #fff;
+}
+button.submitbtn:hover {
+    background-image: -moz-linear-gradient(#8ab959, #7eaf4a);
+    background-image: -webkit-linear-gradient(#8ab959, #7eaf4a);
+    background-image: linear-gradient(#8ab959, #7eaf4a);
+}
+button.submitbtn:active {
+    background-image: -moz-linear-gradient(#7eaf4a, #8ab959);
+    background-image: -webkit-linear-gradient(#7eaf4a, #8ab959);
+    background-image: linear-gradient(#7eaf4a, #8ab959);
+    -moz-box-shadow: inset 0 1px 3px 1px rgba(0, 0, 0, 0.3);
+    -webkit-box-shadow: inset 0 1px 3px 1px rgba(0, 0, 0, 0.3);
+    box-shadow: inset 0 1px 3px 1px rgba(0, 0, 0, 0.3);
+}
+
+.btn-primary {
+    color: #ffffff;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+    background-color: #006dcc;
+    background-image: -moz-linear-gradient(top, #0088cc, #0044cc);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#0088cc), to(#0044cc));
+    background-image: -webkit-linear-gradient(top, #0088cc, #0044cc);
+    background-image: -o-linear-gradient(top, #0088cc, #0044cc);
+    background-image: linear-gradient(to bottom, #0088cc, #0044cc);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff0088cc', endColorstr='#ff0044cc', GradientType=0);
+    border-color: #0044cc #0044cc #002a80;
+    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+    *background-color: #0044cc;
+    /* Darken IE7 buttons by default so they stand out more given they won't have borders */
+
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
+}
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active,
+.btn-primary.active,
+.btn-primary.disabled,
+.btn-primary[disabled] {
+    color: #ffffff;
+    background-color: #0044cc;
+    *background-color: #003bb3;
+}
+.btn-primary:active,
+.btn-primary.active {
+    background-color: #003399 \9;
+}
+
+
+/** responsive design **/
+@media(min-width: 850px){
+    form > div { display: inline-block; }
+    .col-submit { display: block; }
+
+    .col-2, .col-3, .col-4 { box-shadow: 1px 1px #e4e4e4; border: none; }
+
+    .col-2 { width: 50% }
+    .col-3 { width: 33.3333333333% }
+    .col-4 { width: 25% }
+    .col-5 { width: 15% }
+    .col-submit button { width: 30%; margin: 0 auto; }
+}
+
+
+/* Responsive Autocomplete */
+
+.ui-autocomplete {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 1000;
+    float: left;
+    display: none;
+    min-width: 160px;
+    padding: 4px 0;
+    margin: 0 0 10px 25px;
+    list-style: none;
+    background-color: #ffffff;
+    border-color: #ccc;
+    border-color: rgba(0, 0, 0, 0.2);
+    border-style: solid;
+    border-width: 1px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    -moz-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    -webkit-background-clip: padding-box;
+    -moz-background-clip: padding;
+    background-clip: padding-box;
+    *border-right-width: 2px;
+    *border-bottom-width: 2px;
+}
+
+.ui-menu-item > a {
+    display: block;
+    padding: 3px 15px;
+    clear: both;
+    font-weight: normal;
+    line-height: 18px;
+    color: #555555;
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+.ui-state-hover, .ui-state-active, .ui-state-focus {
+    color: #ffffff;
+    text-decoration: none;
+    background-color: #0088cc;
+    border-radius: 0px;
+    -webkit-border-radius: 0px;
+    -moz-border-radius: 0px;
+    background-image: none;
+}
+
+#map {
+    height: 50%;
+    width: 80%;
+    max-height: 300px;
+    margin-left: 20px;
+
+    border: 1px solid #000;
+    border-width: 1px;
+
+
+
+}
+
+.searchRow{
+    padding-top: 20px;
+    padding-left: 50px;
+
+    font-size: 22px;
+}
+
+.gpsBtn {
+  background-size: 100%; /* To fill the dimensions of container (button), or */
+    width: 140px;
+    background-color: #fff;
+     background-image: url(../gpsBtn.png);
+    background-repeat: no-repeat;
+    height: 30px;
+    margin: 0px;
+}
+
+.searchLOC button {
+    border: none;
+    background: none;
+    width: 25px;
+    height: 25px;
+}
+
+
+.location{
+  height: 35px;
+  margin-bottom: 20px;
+}
+
+div.location > span.holder {
+  position: absolute;
+  margin: 14px 0px 0 35px;
+  color: #ddd;
+  cursor: auto;
+  font-family: Helvetica;
+  font-size: 16px;
+  z-index: 1;
+}
+
+div.location > span.holder > span.customFontPH{
+     font-family: erasDemiFont, serif;
+
+}
+
+#overlay {
+
+
+  /* 70% opacity for supported browsers */
+  background-color: rgba(0, 0, 0, 0.7);
+display: table;
+padding: 50px;
+
+}
+
+#message {
+    font-family: Helvetica;
+    font-size: 16px;
+    color: #ddd;
+    display: table-cell;
+    vertical-align: middle;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    z-index: 1000000;
+    margin: 0 20px;
+}
+
+
+#searchBox {
+     z-index: 1000;
+    width: 50%;
+    max-width: 330px;
+    height: 30px;
+    line-height: 22px;
+    font-size: 16px;
+
+    margin-right: 20px;
+    border: 1px solid #51d570;
+    border-radius: 2px;
+
+    background-position: 5px 5px;
+background-image: url('../glass-icon.png');
+background-repeat: no-repeat;
+background-size: 16px 16px;
+}
+
+div#message a:link {
+color: #FFFFFF;
+font-style: italic;
+}
+div#message a:visited {
+color: #FFFFFF;
+}
+div#message a:hover {
+color: #FFFFFF;
+}
+
+.ui-helper-hidden-accessible {
+    display: block;
+    padding: 3px 15px;
+    clear: both;
+    font-weight: normal;
+    line-height: 18px;
+    color: #555555;
+    white-space: nowrap;
+    text-decoration: none;
+}
