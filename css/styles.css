@@ -302,12 +302,12 @@ button.submitbtn:active {
 
 #map {
     height: 50%;
-    width: 80%;
+    width: 75%;
     max-height: 300px;
     margin-left: 20px;
 
-    border: 1px solid #000;
-    border-width: 1px;
+    border: 1px solid #2E9AFE;
+    border-width: 2px;
 
 
 
@@ -422,3 +422,33 @@ color: #FFFFFF;
     white-space: nowrap;
     text-decoration: none;
 }
+
+.helper {
+    margin-top: 10px;
+    color: #A4A4A4;
+  cursor: auto;
+  font-size: 12px;
+  float: right;
+  margin-right: 23%;
+}
+
+ ul li:after {
+    content: "";
+    display: block;
+    height: 1px;
+    width: 75%;   
+    margin-top: 5px;
+    margin-bottom: 5px;
+    margin-left: 18px;
+    background: #555555;
+}
+
+
+/* Tooltip */
+.tooltip > .tooltip-inner {
+      background-color: #F3E2A9; 
+      color: #6E6E6E; 
+      border: 1px solid #F3E2A9; 
+      padding: 15px;
+      font-size: 10px;
+  }

@@ -6,6 +6,8 @@
 
     <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
     <script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 
     <link rel="shortcut icon" href="http://locname.com/assets/favicon.png">
     <link rel="icon" href="http://locname.com/assets/favicon.png">
@@ -135,7 +137,7 @@
             map.setCenter(place.lat, place.lng, function () {
                 map.removeMarkers();
                 var mapMarker = map.addMarker(marker);
-
+                currentMarker = mapMarker;
                 //add event listeners
                 google.maps.event.addListener(mapMarker, 'dragstart', function () {
 
@@ -143,7 +145,7 @@
                 });
 
                 google.maps.event.addListener(mapMarker, 'drag', function () {
-                    $('#searchBox').val('Drop the pin to search a new address..');
+                    
                 });
 
                 google.maps.event.addListener(mapMarker, 'dragend', function () {
@@ -178,7 +180,7 @@
                 zIndex: 100000  // to be on the safe side
             }).appendTo($("#map").css("position", "relative"));
 
-            $("<div id= 'message' onclick='removeOverlay();'><b>Note: Moving the map pin will resete the address field.&nbsp If you believe the map location is wrong, <a id='popupaddr' href='#' onclick='showPopup(event); return false;'>click here</a> to enable edit </b></div>").appendTo($("#overlay").css("position", "relative"));
+            $("<div id= 'message' onclick='removeOverlay();'><b>Note: Moving the map pin will resete the address field.&nbsp If you believe the map location is wrong, <a id='popupaddr' href='#' onclick='makeMarkerDraggable(event); return false;'>click here</a> to enable edit </b></div>").appendTo($("#overlay").css("position", "relative"));
         }
 
 
@@ -317,7 +319,7 @@
                         self._renderItemData(ul, item)
                     });
                     // Adder
-                    ul.append("<div style='float:right;'  id=\"locname_logo\">Powered by <b style='font-family: erasDemiFont, serif;'> LocName </b><img style=max-height:100%; max-width:100%;' src=locname-icon.png width = 25px height = 25px></img> <b> & </b> <img style=max-height:100%; max-width:100%;' src=google.png width = 80px height = 25px></img></div> ");
+                    ul.append("<div style='float:right' id=\"powered_by\">Powered by  <img style='max-height:100%; max-width:100%;vertical-align:middle' src=google.png width = 80px height = 25px> </img> <b> & </b> <img style='max-height:100%; max-width:100%;vertical-align:middle' src=locname-icon.png width = 25px height = 25px> </div>");
                 };
             };
             $("head").append(s);
@@ -428,7 +430,24 @@
     </div>
 
 </div>
+
 <div id="map"></div>
+<div class="helper">
+
+
+    <a data-toggle="tooltip" data-placement="left" data-html="true" title="A  <span style='font-family: erasDemiFont, serif;'> LocName </span> is a digital address that you assign to your location. By saving a <span style='font-family: erasDemiFont, serif;'> LocName </span> you will only be asked your LocName when placing orders or sharing your address details. Put youserlf on the map!">    <img src="icon-question.jpg" width="15px" height="15px" style="vertical-align:middle" />
+</a>
+
+
+
+
+Check this box to save your location as a <span class="customFontPH" style="color:#0174DF;font-family: erasDemiFont, serif;"> LocName  </span> <input type="checkbox" />
+
+
+</div>
+<div class="helper">
+      <button class="submitbtn" style="width:140px;  font-family: Helvetica;  font-size: 16px;">Save</button>
+</div>
 <div id="debugForm" style="display: none;">
     <img class="header-logo-small" src="http://locname.com/assets/loc/images/logo-small.png" style="cursor:pointer;"
          onclick="window.location = 'http://locname.com/'"></img>
@@ -537,8 +556,10 @@
                     type: "gmaps",
                     extraData: responses[0]
                 };
-                document.getElementById("searchBox").value = responses[0].formatted_address
-                fillInAddress(place);
+                if (typeof place.lat !== "undefined") {
+                     document.getElementById("latitude").value = place.lat;
+                     document.getElementById("longitude").value = place.lng;
+                }
 
             } else {
                 console.error('Cannot determine address at this location.');
@@ -760,6 +781,16 @@
 
     })
 
+
+    function makeMarkerDraggable(e){
+        if (e != null) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        $('#overlay').remove();
+
+    }
+
     function showPopup(e) {
         if (e != null) {
             e.preventDefault();
@@ -786,7 +817,9 @@
 
         return false;
     }
-
+$(document).ready(function(){
+    $('[data-toggle="tooltip"]').tooltip();   
+});
 
 </script>
 
