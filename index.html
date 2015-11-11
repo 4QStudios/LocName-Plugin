@@ -180,7 +180,7 @@
                 zIndex: 100000  // to be on the safe side
             }).appendTo($("#map").css("position", "relative"));
 
-            $("<div id= 'message' onclick='removeOverlay();'><b>Note: Moving the map pin will resete the address field.&nbsp If you believe the map location is wrong, <a id='popupaddr' href='#' onclick='makeMarkerDraggable(event); return false;'>click here</a> to enable edit </b></div>").appendTo($("#overlay").css("position", "relative"));
+            $("<div id= 'message' onclick='removeOverlay();'><b>Note: Moving the map pin will resete the address field. <br> If you believe the map location is wrong, <a id='popupaddr' href='#' onclick='makeMarkerDraggable(event); return false;'>click here</a> to enable edit </b></div>").appendTo($("#overlay").css("position", "relative"));
         }
 
 
@@ -308,7 +308,7 @@
                         imgName = "gmaps-icon.png";
                     }
                     ;
-                    return $("<li>").append("<a><strong>" + item.title + "</strong> <img style='float:right;max-height:100%; max-width:100%;' src=" + imgName + " width = 20px height = 20px></img> </a>").appendTo(ul);
+                    return $("<li>").append("<a><strong> &nbsp" + item.title + "</strong> <img style='float:left;max-height:100%; max-width:100%;' src=" + imgName + " width = 20px height = 20px></img> </a>").appendTo(ul);
                 };
 
 
